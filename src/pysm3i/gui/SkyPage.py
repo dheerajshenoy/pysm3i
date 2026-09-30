@@ -4,13 +4,13 @@ import numpy as np
 from PyQt6.QtCore import Qt, QThreadPool, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox, QComboBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QSlider, QVBoxLayout, QWidget,
+    QSizePolicy, QSlider, QToolBar, QVBoxLayout, QWidget,
 )
 
 from pysm3i.core.skymodel import UNITS, SkyModel
 from pysm3i.models import load_registry
 from .BusyBar import BusyBar
-from .MapCanvas import MapCanvas
+from .MapCanvas import PROJECTION_NAMES, ZOOM, MapCanvas
 from .jobs import Job
 
 # Components shown on this page, in display order, with a cheap default preset.
@@ -22,6 +22,8 @@ DEFAULT_ENABLED = {"dust", "synchrotron", "free_free"}
 STOKES = ["I", "Q", "U", "P"]
 DEFAULT_NSIDE = 64
 MAX_NSIDE = 1024  # 2048 needs ~1.2 GB per component map
+FOVS_DEG = [5, 10, 20, 40, 60]
+DEFAULT_FOV_DEG = 20
 NSIDES = [2**k for k in range(MAX_NSIDE.bit_length())]  # 1, 2, 4, ... MAX_NSIDE
 FREQ_MIN_LOG, FREQ_MAX_LOG = 1.0, 3.0  # 10 GHz to 1000 GHz
 SLIDER_STEPS = 1000
@@ -65,8 +67,8 @@ class SkyPage(QWidget):
         self.busy.stop_requested.connect(self._stop)
 
         root = QVBoxLayout(self)
+        root.addWidget(self._build_toolbar())
         root.addWidget(self.canvas, stretch=1)
-        root.addLayout(self._build_frequency_row())
         controls = QHBoxLayout()
         controls.addWidget(self._build_components_box(), stretch=2)
         controls.addWidget(self._build_display_box(), stretch=1)
@@ -76,19 +78,46 @@ class SkyPage(QWidget):
         status_row.addWidget(self.busy)
         root.addLayout(status_row)
 
-    def _build_frequency_row(self) -> QHBoxLayout:
+    def _build_toolbar(self) -> QToolBar:
+        """Frequency slider and projection picker, at the top of the page."""
         self.freq_slider = QSlider(Qt.Orientation.Horizontal)
         self.freq_slider.setRange(0, SLIDER_STEPS)
         self.freq_slider.setValue(ghz_to_slider(353))
+        self.freq_slider.setMinimumWidth(200)
+        self.freq_slider.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.freq_label = QLabel()
         self.freq_label.setMinimumWidth(90)
         self.freq_slider.valueChanged.connect(self._on_frequency_changed)
         self._update_freq_label()
-        row = QHBoxLayout()
-        row.addWidget(QLabel("Frequency"))
-        row.addWidget(self.freq_slider, stretch=1)
-        row.addWidget(self.freq_label)
-        return row
+
+        self.projection_combo = QComboBox()
+        self.projection_combo.addItems(PROJECTION_NAMES)
+        self.projection_combo.setToolTip("Zoom centres on the picked pixel. Double-click to recentre.")
+        self.projection_combo.currentIndexChanged.connect(self._redraw)
+        self.fov_combo = QComboBox()
+        for fov in FOVS_DEG:
+            self.fov_combo.addItem(f"{fov}°", fov)
+        self.fov_combo.setCurrentIndex(FOVS_DEG.index(DEFAULT_FOV_DEG))
+        self.fov_combo.setToolTip("Field of view of the zoom view")
+        self.fov_combo.currentIndexChanged.connect(self._redraw)
+
+        bar = QToolBar()
+        bar.setMovable(False)
+        bar.addWidget(self._padded_label("Frequency"))
+        bar.addWidget(self.freq_slider)
+        bar.addWidget(self.freq_label)
+        bar.addSeparator()
+        bar.addWidget(self._padded_label("Projection"))
+        bar.addWidget(self.projection_combo)
+        bar.addWidget(self._padded_label("Field of view"))
+        bar.addWidget(self.fov_combo)
+        return bar
+
+    @staticmethod
+    def _padded_label(text: str) -> QLabel:
+        label = QLabel(text)
+        label.setContentsMargins(6, 0, 6, 0)
+        return label
 
     def _build_components_box(self) -> QGroupBox:
         box = QGroupBox("Components")
@@ -215,6 +244,7 @@ class SkyPage(QWidget):
     def _redraw(self, *_):
         if self._maps is None:
             return
+        self.fov_combo.setEnabled(self.projection_combo.currentText() == ZOOM)
         stokes = self.stokes_combo.currentText()
         if stokes == "P":
             data = np.hypot(self._maps[1], self._maps[2])
@@ -226,6 +256,8 @@ class SkyPage(QWidget):
             cmap="RdBu_r" if stokes in ("Q", "U") else "viridis",
             symmetric=stokes in ("Q", "U"),
             stretch=self.stretch_combo.currentText(),
+            projection=self.projection_combo.currentText(),
+            fov_deg=self.fov_combo.currentData(),
         )
         self._update_readout()
 
