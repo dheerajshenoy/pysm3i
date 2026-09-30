@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QStackedWidget
 from PyQt6.QtCore import Qt
+from pysm3i.core.skymodel import SkyModel
 from pysm3i.models import load_registry
 from .CatalogPage import CatalogPage
 from .PlaceholderPage import PlaceholderPage
+from .SEDPage import SEDPage
 from .SkyPage import SkyPage
 from .SideBar import PAGES, SideBar
 
@@ -17,10 +19,14 @@ class MainWindow(QMainWindow):
 
     def init_central_widget(self):
         # One page per sidebar entry, in the same order as PAGES
-        self.sky_page = SkyPage()
+        model = SkyModel()  # shared, so both pages reuse each other's computed maps
+        self.sky_page = SkyPage(model)
         self.catalog_page = CatalogPage(can_show_on_sky=self.sky_page.can_show)
         self.catalog_page.show_on_sky.connect(self.show_preset_on_sky)
-        built = {"Sky": self.sky_page, "Catalog": self.catalog_page}
+        self.sed_page = SEDPage(model, self.sky_page.active_presets)
+        self.sky_page.pixel_selected.connect(self.sed_page.set_pixel)
+        self.sky_page.presets_changed.connect(self.sed_page.invalidate)
+        built = {"Sky": self.sky_page, "Catalog": self.catalog_page, "SED": self.sed_page}
 
         self.stack_widget = QStackedWidget()
         for name in PAGES:

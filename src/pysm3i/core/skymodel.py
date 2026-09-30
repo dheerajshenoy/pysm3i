@@ -50,6 +50,22 @@ class SkyModel:
         converted = (total * u.uK_RJ).to(u.Unit(unit), u.cmb_equivalencies(freq))
         return np.asarray(converted.value)
 
+    def sed(
+        self, presets: list[str], nside: int, freqs_ghz, pixel: int,
+        cancel: threading.Event | None = None,
+    ) -> dict[str, np.ndarray]:
+        """Each preset's I, Q, U at one pixel, shape (3, nfreq), in uK_RJ."""
+        out = {}
+        with self._lock:
+            for preset in presets:
+                rows = []
+                for freq in freqs_ghz:
+                    if cancel is not None and cancel.is_set():
+                        raise Cancelled
+                    rows.append(self._preset_emission(preset, nside, float(freq))[:, pixel])
+                out[preset] = np.stack(rows, axis=1)
+        return out
+
     def _preset_emission(self, preset: str, nside: int, freq_ghz: float) -> np.ndarray:
         key = (preset, nside, round(freq_ghz, 4))
         if key not in self._emission:

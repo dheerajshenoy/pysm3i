@@ -1,15 +1,17 @@
 import threading
 
 import numpy as np
-from PyQt6.QtCore import QObject, QRunnable, Qt, QThreadPool, QTimer, pyqtSignal
+from PyQt6.QtCore import Qt, QThreadPool, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox, QComboBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QProgressBar, QPushButton, QSlider, QVBoxLayout, QWidget,
+    QSlider, QVBoxLayout, QWidget,
 )
 
-from pysm3i.core.skymodel import UNITS, Cancelled, SkyModel
+from pysm3i.core.skymodel import UNITS, SkyModel
 from pysm3i.models import load_registry
+from .BusyBar import BusyBar
 from .MapCanvas import MapCanvas
+from .jobs import Job
 
 # Components shown on this page, in display order, with a cheap default preset.
 COMPONENTS = ["dust", "synchrotron", "free_free", "ame", "cmb"]
@@ -34,38 +36,15 @@ def ghz_to_slider(freq: float) -> int:
     return round((np.log10(freq) - FREQ_MIN_LOG) / (FREQ_MAX_LOG - FREQ_MIN_LOG) * SLIDER_STEPS)
 
 
-class _JobSignals(QObject):
-    done = pyqtSignal(int, object)
-    failed = pyqtSignal(int, str)
-
-
-class _Job(QRunnable):
-    def __init__(self, request_id, model, presets, nside, freq_ghz, unit, cancel):
-        super().__init__()
-        self.signals = _JobSignals()
-        self._args = (model, presets, nside, freq_ghz, unit, cancel)
-        self._id = request_id
-
-    def run(self):
-        model, presets, nside, freq_ghz, unit, cancel = self._args
-        try:
-            maps = model.emission(presets, nside, freq_ghz, unit, cancel)
-        except Cancelled:
-            return  # the page already moved on; nothing to report
-        except Exception as exc:  # shown in the status line, not a crash
-            self.signals.failed.emit(self._id, f"{type(exc).__name__}: {exc}")
-        else:
-            self.signals.done.emit(self._id, maps)
-
-
 class SkyPage(QWidget):
     """Full-sky map with frequency, component and display controls."""
 
     pixel_selected = pyqtSignal(float, float)  # lon, lat in degrees
+    presets_changed = pyqtSignal()  # the set of active presets changed
 
-    def __init__(self):
+    def __init__(self, model: SkyModel | None = None):
         super().__init__()
-        self._model = SkyModel()
+        self._model = model or SkyModel()
         self._registry = load_registry()
         self._maps: np.ndarray | None = None
         self._request_id = 0
@@ -81,19 +60,8 @@ class SkyPage(QWidget):
         self.canvas = MapCanvas()
         self.canvas.pixel_clicked.connect(self._on_pixel_clicked)
         self.status = QLabel("Ready")
-        self.progress = QProgressBar()
-        self.progress.setRange(0, 0)  # indeterminate: PySM3 reports no progress
-        self.progress.setTextVisible(False)
-        self.progress.setFixedWidth(160)
-        self.stop_button = QPushButton("Stop")
-        self.stop_button.setToolTip("Stop computing. A preset already in progress finishes in the background.")
-        self.stop_button.clicked.connect(self._stop)
-        self.busy = QWidget()  # progress bar + stop button, shown while computing
-        busy_row = QHBoxLayout(self.busy)
-        busy_row.setContentsMargins(0, 0, 0, 0)
-        busy_row.addWidget(self.progress)
-        busy_row.addWidget(self.stop_button)
-        self.busy.hide()
+        self.busy = BusyBar()
+        self.busy.stop_requested.connect(self._stop)
 
         root = QVBoxLayout(self)
         root.addWidget(self.canvas, stretch=1)
@@ -140,6 +108,8 @@ class SkyPage(QWidget):
             combo.setCurrentIndex(combo.findData(DEFAULT_PRESET[key]))
             check.toggled.connect(self._schedule)
             combo.currentIndexChanged.connect(self._schedule)
+            check.toggled.connect(lambda *_: self.presets_changed.emit())
+            combo.currentIndexChanged.connect(lambda *_: self.presets_changed.emit())
             grid.addWidget(check, row, 0)
             grid.addWidget(combo, row, 1)
             self._checks[key], self._combos[key] = check, combo
@@ -187,7 +157,7 @@ class SkyPage(QWidget):
     def can_show(self, name: str) -> bool:
         return self._registry[name].component in COMPONENTS
 
-    def _active_presets(self) -> list[str]:
+    def active_presets(self) -> list[str]:
         return [self._combos[k].currentData() for k in COMPONENTS if self._checks[k].isChecked()]
 
     def _update_freq_label(self):
@@ -208,11 +178,13 @@ class SkyPage(QWidget):
         self._request_id += 1
         self.status.clear()
         self.busy.show()
-        job = _Job(
-            self._request_id, self._model, self._active_presets(),
-            self.nside_combo.currentData(), slider_to_ghz(self.freq_slider.value()),
-            UNITS[self.unit_combo.currentText()], self._cancel,
-        )
+        model, cancel = self._model, self._cancel
+        presets = self.active_presets()
+        nside = self.nside_combo.currentData()
+        freq_ghz = slider_to_ghz(self.freq_slider.value())
+        unit = UNITS[self.unit_combo.currentText()]
+        job = Job(self._request_id,
+                  lambda: model.emission(presets, nside, freq_ghz, unit, cancel))
         job.signals.done.connect(self._on_maps_ready)
         job.signals.failed.connect(self._on_maps_failed)
         QThreadPool.globalInstance().start(job)
