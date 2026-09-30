@@ -14,24 +14,17 @@
 
 # Learning-oriented extras
 
-- Power spectra: Compute and plot C_ℓ (EE, BB, TT) per component and frequency, with a comparison against the CMB signal and an r = 0.01 line. This shows why foregrounds matter for B-mode searches.
-- Spatial variation of parameters: Show the β_s and T_d maps themselves.
-- Frequency-decorrelation demo: Plot the correlation between maps at two frequencies, which is what models like d10 and s5 are about.
-- Unit converter: Convert between K_CMB, K_RJ, and MJy/sr, since unit confusion is a common stumbling block. Show the conversion factors per frequency.
-- Guided tour: Short notes such as "what happens to dust at 30 GHz vs 353 GHz" tied to presets of the sliders.
+- [ ] Power spectra: Compute and plot C_ℓ (EE, BB, TT) per component and frequency, with a comparison against the CMB signal and an r = 0.01 line. This shows why foregrounds matter for B-mode searches.
+- [ ] Spatial variation of parameters: Show the β_s and T_d maps themselves.
+- [ ] Frequency-decorrelation demo: Plot the correlation between maps at two frequencies, which is what models like d10 and s5 are about.
+- [x] Unit converter: Convert between K_CMB, K_RJ, and MJy/sr, since unit confusion is a common stumbling block. Show the conversion factors per frequency.
+- [ ] Guided tour: Short notes such as "what happens to dust at 30 GHz vs 353 GHz" tied to presets of the sliders.
 
 # Practical features
 
-- Simulation builder: Choose a preset combination, add bandpass and beam settings, and export FITS maps or a ready-to-run Python snippet using pysm3.Sky(...).
-- Bandpass and beam support: Use pysm3.Sky with bandpass_unit, and offer simple Gaussian beam smoothing.
-- Resolution control: nside of 32–128 for fast interaction, with an option for full resolution as a background job.
-
-# Technical suggestions
-
-- GUI toolkit: PySide6 or PyQt6 with matplotlib embedded is the easiest start. You mentioned Python only, so I'm suggesting Qt. A web option such as Panel or Streamlit is quicker to build but less snappy for maps.
-- Speed: Keep an interactive nside low, cache the template maps, and recompute on a worker thread so sliders don't freeze.
-- Structure: A models/ metadata registry (description, references, parameters) separate from the GUI, so adding a model is just adding data.
-- Testing: Compare your live results against direct pysm3 output as a regression test.
+- [ ] Simulation builder: Choose a preset combination, add bandpass and beam settings, and export FITS maps or a ready-to-run Python snippet using pysm3.Sky(...).
+- [ ] Bandpass and beam support: Use pysm3.Sky with bandpass_unit, and offer simple Gaussian beam smoothing.
+- [x] Resolution control: nside of 32–128 for fast interaction, with an option for full resolution as a background job.
 
 # Suggested build order
 
