@@ -24,7 +24,9 @@ class MainWindow(QMainWindow):
         # One page per sidebar entry, in the same order as PAGES
         model = SkyModel()  # shared, so both pages reuse each other's computed maps
         self.sky_page = SkyPage(model)
-        self.catalog_page = CatalogPage(can_show_on_sky=self.sky_page.can_show)
+        self.catalog_page = CatalogPage(can_show_on_sky=self.sky_page.can_show,
+                                        active_presets=self.sky_page.active_presets)
+        self.sky_page.presets_changed.connect(self.catalog_page.refresh_active)
         self.catalog_page.show_on_sky.connect(self.show_preset_on_sky)
         self.sed_page = SEDPage(model, self.sky_page.active_presets)
         self.sky_page.pixel_selected.connect(self.sed_page.set_pixel)

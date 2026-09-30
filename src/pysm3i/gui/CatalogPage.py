@@ -1,4 +1,5 @@
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PyQt6.QtWidgets import (
     QAbstractItemView, QFormLayout, QHeaderView, QLabel, QLineEdit, QPushButton,
     QSplitter, QTableWidget, QTableWidgetItem, QTreeWidget, QTreeWidgetItem,
@@ -10,6 +11,22 @@ from .equations import latex_to_pixmap
 
 ROLE_KIND = Qt.ItemDataRole.UserRole  # "component" or "preset"
 ROLE_KEY = Qt.ItemDataRole.UserRole + 1  # component key or preset name
+ACTIVE_COLOR = "#22a060"
+DOT_SIZE = 10
+
+
+def _dot_icon(color: str | None) -> QIcon:
+    """A filled dot, or an empty icon of the same size so the text stays aligned."""
+    pixmap = QPixmap(DOT_SIZE, DOT_SIZE)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    if color:
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setBrush(QColor(color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(0, 0, DOT_SIZE, DOT_SIZE)
+        painter.end()
+    return QIcon(pixmap)
 
 
 def flatten(config: dict, prefix: str = "") -> list[tuple[str, str]]:
@@ -28,13 +45,18 @@ class CatalogPage(QWidget):
 
     show_on_sky = pyqtSignal(str)  # preset name
 
-    def __init__(self, can_show_on_sky=lambda name: False):
+    def __init__(self, can_show_on_sky=lambda name: False, active_presets=lambda: []):
         super().__init__()
         self._registry = load_registry()
         self._can_show_on_sky = can_show_on_sky
+        self._active_presets = active_presets  # callable: preset names in use on the Sky page
+        self._preset_items: dict[str, QTreeWidgetItem] = {}
+        self._active_icon = _dot_icon(ACTIVE_COLOR)
+        self._inactive_icon = _dot_icon(None)
         self._current: Preset | None = None
         self._init_ui()
         self._fill_tree()
+        self.refresh_active()
         self.tree.setCurrentItem(self.tree.topLevelItem(0).child(0))
 
     # ---- UI --------------------------------------------------------------
@@ -51,6 +73,9 @@ class CatalogPage(QWidget):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.addWidget(self.search)
         left_layout.addWidget(self.tree)
+        legend = QLabel(f'<span style="color:{ACTIVE_COLOR}">●</span> active on the Sky page')
+        legend.setStyleSheet("color: gray;")
+        left_layout.addWidget(legend)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(left)
@@ -125,7 +150,20 @@ class CatalogPage(QWidget):
                 child.setData(0, ROLE_KEY, preset.name)
                 child.setToolTip(0, preset.summary)
                 parent.addChild(child)
+                self._preset_items[preset.name] = child
             parent.setExpanded(True)
+
+    def refresh_active(self):
+        """Mark the presets currently in use on the Sky page."""
+        active = set(self._active_presets())
+        for name, item in self._preset_items.items():
+            is_active = name in active
+            item.setIcon(0, self._active_icon if is_active else self._inactive_icon)
+            font = item.font(0)
+            font.setBold(is_active)
+            item.setFont(0, font)
+            summary = self._registry[name].summary
+            item.setToolTip(0, f"Active on the Sky page\n\n{summary}" if is_active else summary)
 
     def _apply_filter(self, text: str):
         needle = text.strip().lower()
