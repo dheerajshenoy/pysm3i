@@ -1,0 +1,69 @@
+[component]
+name = "Thermal dust"
+summary = "Emission from thermal vibrations of interstellar dust grains. It dominates the microwave sky above ~100 GHz and is the main polarized foreground for CMB B-mode searches."
+sed = "Modified blackbody: I(nu) ~ (nu/nu0)^(beta) * B_nu(T_d) / B_nu0(T_d)"
+
+[presets.d0]
+summary = "Simplest dust model: a Planck-based template scaled with a single constant spectral index (1.54) and a single dust temperature (20 K) over the whole sky."
+spatial_variation = "None (constant beta and T_d)"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.d1]
+summary = "Same intensity/polarization template as d0, but beta and T_d are spatial maps from a Planck Commander fit, so the SED changes across the sky."
+spatial_variation = "beta and T_d vary per pixel"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.d2]
+summary = "Like d1 but with a spectral-index map built with mean 1.59 and 0.2 standard deviation, a synthetic map that adds small-scale spectral variation."
+spatial_variation = "beta (mean 1.59, std 0.2) and T_d vary per pixel"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.d3]
+summary = "Same construction as d2 with a wider spectral-index scatter (std 0.3), i.e. more extreme spatial variation of the dust SED."
+spatial_variation = "beta (mean 1.59, std 0.3) and T_d vary per pixel"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.d4]
+summary = "Two-component dust: a cold and a warm component, each with its own intensity, polarization, beta and T_d maps. The sum gives an SED that is not a single modified blackbody."
+spatial_variation = "Two independent modified blackbodies, each with per-pixel beta and T_d"
+reference = "Meisner & Finkbeiner 2015"
+
+[presets.d5]
+summary = "Physical dust model from Hensley & Draine 2017 with carbonaceous grains only (no iron inclusions). The SED comes from grain physics, with the starlight-heating intensity U drawn as a random realization."
+spatial_variation = "Radiation-field strength U varies as a random field"
+reference = "Hensley & Draine 2017"
+
+[presets.d6]
+summary = "d1 plus frequency decorrelation: the dust pattern is allowed to change with frequency beyond a simple rescaling, controlled by a correlation length."
+spatial_variation = "beta and T_d per pixel, plus decorrelation between frequencies"
+reference = "Vansyngel et al. 2017"
+
+[presets.d7]
+summary = "Hensley & Draine 2017 model with carbonaceous grains plus a fraction (0.44) of iron inclusions in the silicate grains, which changes the polarized SED."
+spatial_variation = "Radiation-field strength U varies as a random field"
+reference = "Hensley & Draine 2017"
+
+[presets.d8]
+summary = "Same physical model as d7 but with a uniform radiation-field strength (U = 0.2) instead of a random field, isolating the effect of the grain composition."
+spatial_variation = "None in U"
+reference = "Hensley & Draine 2017"
+
+[presets.d9]
+summary = "High-resolution GNILC-based dust template with constant beta (1.48) and T_d (19.6 K). It is defined up to nside 8192."
+spatial_variation = "None (constant beta and T_d)"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"
+
+[presets.d10]
+summary = "GNILC dust template with spatially varying beta and T_d maps, giving realistic small-scale structure at high resolution. It is the recommended modern default for dust."
+spatial_variation = "beta and T_d vary per pixel"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"
+
+[presets.d11]
+summary = "Statistical realization of GNILC dust: large scales come from the data, small scales are generated from measured power spectra, and beta and T_d are generated the same way. Extends beyond the resolution of the data."
+spatial_variation = "beta and T_d generated as random fields"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"
+
+[presets.d12]
+summary = "Dust made of six line-of-sight layers, each with its own amplitude, beta and T_d map. Summing layers produces frequency decorrelation and a more complex SED."
+spatial_variation = "Six layers, each with independent beta and T_d"
+reference = "Martinez-Solaeche, Karakci & Delabrouille 2018"

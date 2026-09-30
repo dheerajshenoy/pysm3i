@@ -1,0 +1,49 @@
+[component]
+name = "Sunyaev-Zel'dovich (SZ)"
+summary = "Distortions of the CMB by hot gas in galaxy clusters. The thermal effect (tSZ) comes from electron temperature and the kinetic effect (kSZ) from bulk motion of the gas."
+sed = "tSZ: characteristic spectral distortion, null near 217 GHz. kSZ: same shape as the CMB blackbody derivative"
+
+[presets.tsz1]
+summary = "Thermal SZ Compton-y map from the WebSky simulation."
+kind = "thermal"
+reference = "Stein et al. 2020 (WebSky)"
+
+[presets.ksz1]
+summary = "Kinetic SZ map from the WebSky simulation."
+kind = "kinetic"
+reference = "Stein et al. 2020 (WebSky)"
+
+[presets.tsz2]
+summary = "Thermal SZ map from the Agora simulation (unlensed)."
+kind = "thermal"
+reference = "Agora simulations"
+
+[presets.ksz2]
+summary = "Kinetic SZ map from the Agora simulation (unlensed)."
+kind = "kinetic"
+reference = "Agora simulations"
+
+[presets.tsz3]
+summary = "Thermal SZ map from the Agora simulation with lensing applied."
+kind = "thermal"
+reference = "Agora simulations"
+
+[presets.ksz3]
+summary = "Kinetic SZ map from the Agora simulation with lensing applied."
+kind = "kinetic"
+reference = "Agora simulations"
+
+[presets.tsz4]
+summary = "Thermal SZ Compton-y map from the Websky-derived HalfDome simulation."
+kind = "thermal"
+reference = "HalfDome simulations"
+
+[presets.ksz5]
+summary = "Lensed kinetic SZ map from a FLAMINGO hydrodynamical simulation (L1_m9 variant)."
+kind = "kinetic"
+reference = "FLAMINGO simulations"
+
+[presets.ksz6]
+summary = "Lensed kinetic SZ map from a FLAMINGO hydrodynamical simulation (fgas-8sigma variant, with stronger gas depletion)."
+kind = "kinetic"
+reference = "FLAMINGO simulations"

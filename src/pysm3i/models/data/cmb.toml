@@ -1,0 +1,24 @@
+[component]
+name = "CMB"
+summary = "The cosmic microwave background: a blackbody at 2.7255 K whose anisotropies are the signal that foreground models are used to separate from."
+sed = "Blackbody derivative, flat in K_CMB units"
+
+[presets.c1]
+summary = "Gaussian CMB realization generated from a CAMB lensed power spectrum with a fixed seed, with an option to apply delensing."
+spatial_variation = "Random realization (seeded)"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.c2]
+summary = "A fixed, precomputed lensed CMB map loaded from file, so results are identical between runs."
+spatial_variation = "Fixed map"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.c3]
+summary = "Unlensed CMB from the WebSky simulation suite, without the solar dipole. Available up to nside 4096."
+spatial_variation = "Random realization (seeded)"
+reference = "Stein et al. 2020 (WebSky)"
+
+[presets.c4]
+summary = "Lensed CMB from the WebSky simulation suite, without the solar dipole, consistent with the WebSky large-scale structure. Available up to nside 4096."
+spatial_variation = "Random realization (seeded)"
+reference = "Stein et al. 2020 (WebSky)"

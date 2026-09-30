@@ -1,0 +1,9 @@
+[component]
+name = "Cosmic infrared background (CIB)"
+summary = "Integrated emission from dusty star-forming galaxies over cosmic history. It is extragalactic and non-Gaussian, and it matters at high frequencies (roughly 100-1000 GHz)."
+sed = "Tabulated maps interpolated between frequency channels"
+
+[presets.cib1]
+summary = "CIB maps from the WebSky simulation, interpolated between simulated frequency channels, with a South Pole Telescope-based correction applied. Available up to nside 4096."
+spatial_variation = "Simulated map at each tabulated frequency"
+reference = "Stein et al. 2020 (WebSky)"

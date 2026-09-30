@@ -1,0 +1,14 @@
+[component]
+name = "Anomalous microwave emission (AME)"
+summary = "A bump of emission peaking near 20-40 GHz, commonly attributed to spinning small dust grains. It is only weakly polarized, if at all."
+sed = "Spinning-dust spectrum (SpDust) shifted to a per-pixel peak frequency"
+
+[presets.a1]
+summary = "Two spinning-dust components (peaks near 30 GHz and 33 GHz), each scaled from an emissivity curve. Unpolarized."
+spatial_variation = "First component has a peak-frequency map; the second has a constant peak"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.a2]
+summary = "The a1 spinning-dust components with a 2% polarization fraction, oriented using the dust polarization angle."
+spatial_variation = "As a1, with polarization angle taken from the dust maps"
+reference = "Thorne et al. 2017 (PySM 2)"

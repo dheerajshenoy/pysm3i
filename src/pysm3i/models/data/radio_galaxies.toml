@@ -1,0 +1,19 @@
+[component]
+name = "Radio galaxies"
+summary = "Extragalactic radio sources (active galactic nuclei). They appear as bright compact sources, mainly at low microwave frequencies."
+sed = "Tabulated maps interpolated between frequency channels, or a source catalog"
+
+[presets.rg1]
+summary = "Radio-galaxy maps from the WebSky simulation, interpolated between frequencies, without the SPT correction. Available up to nside 4096."
+spatial_variation = "Simulated map at each tabulated frequency"
+reference = "Stein et al. 2020 (WebSky)"
+
+[presets.rg2]
+summary = "Point-source catalog of bright radio galaxies (above about 1 mJy) placed on the sky as individual sources. Available up to nside 8192."
+spatial_variation = "Discrete catalog"
+reference = "WebSky radio catalog"
+
+[presets.rg3]
+summary = "Background radio emission from sources below the catalog threshold, given as maps at 16 frequencies from 1 to 1000 GHz that are interpolated in between. The maps come with a pre-applied beam, so they are meant to be combined with rg2."
+spatial_variation = "Map at each tabulated frequency"
+reference = "WebSky radio catalog"

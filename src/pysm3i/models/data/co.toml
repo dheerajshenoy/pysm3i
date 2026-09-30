@@ -1,0 +1,19 @@
+[component]
+name = "CO lines"
+summary = "Rotational line emission from carbon monoxide molecules in Galactic molecular clouds. It adds narrow spectral features that can fall inside instrument bands."
+sed = "Discrete spectral lines (CO J=1-0, 2-1, 3-2), integrated over the bandpass"
+
+[presets.co1]
+summary = "Unpolarized CO line emission from the CO J=1-0, 2-1 and 3-2 lines."
+spatial_variation = "Line-intensity template maps"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.co2]
+summary = "CO line emission with a 0.1% polarization fraction."
+spatial_variation = "As co1"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.co3]
+summary = "co2 plus additional CO emission from high-Galactic-latitude clouds."
+spatial_variation = "As co2, with high-latitude cloud component"
+reference = "Thorne et al. 2017 (PySM 2)"

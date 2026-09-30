@@ -1,0 +1,9 @@
+[component]
+name = "Free-free"
+summary = "Bremsstrahlung from free electrons scattering off ions in ionized gas. It is important around 30-100 GHz and is essentially unpolarized."
+sed = "Power law with a fixed spectral index near -2.14"
+
+[presets.f1]
+summary = "Free-free intensity template (from Planck Commander) scaled with a constant spectral index of -2.14. It has no polarization."
+spatial_variation = "None (constant beta)"
+reference = "Thorne et al. 2017 (PySM 2)"

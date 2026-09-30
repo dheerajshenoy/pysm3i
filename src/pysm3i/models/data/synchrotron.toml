@@ -1,0 +1,44 @@
+[component]
+name = "Synchrotron"
+summary = "Emission from cosmic-ray electrons spiralling in the Galactic magnetic field. It is strongly polarized and dominates the sky below ~70 GHz."
+sed = "Power law: I(nu) ~ (nu/nu0)^beta, optionally with a curvature term"
+
+[presets.s0]
+summary = "Simplest synchrotron model: a Haslam-based intensity template with a constant spectral index of -3 everywhere."
+spatial_variation = "None (constant beta)"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.s1]
+summary = "Same template as s0 but with a spatially varying spectral-index map, so the SED steepens or flattens across the sky."
+spatial_variation = "beta varies per pixel"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.s2]
+summary = "Like s1 but the spectral-index map varies with Galactic latitude only, a simpler pattern of spectral variation."
+spatial_variation = "beta varies with Galactic latitude"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.s3]
+summary = "s1 plus a constant spectral curvature (-0.052) around 23 GHz, so the spectral index changes slowly with frequency."
+spatial_variation = "beta varies per pixel; curvature is constant"
+reference = "Thorne et al. 2017 (PySM 2)"
+
+[presets.s4]
+summary = "High-resolution synchrotron template (up to nside 8192) with a constant spectral index of -3.1."
+spatial_variation = "None (constant beta)"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"
+
+[presets.s5]
+summary = "The high-resolution template of s4 with a spatially varying spectral-index map. It is the recommended modern default for synchrotron."
+spatial_variation = "beta varies per pixel"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"
+
+[presets.s6]
+summary = "Statistical realization of synchrotron: large scales come from data, small scales and the spectral index are generated as random fields from measured power spectra."
+spatial_variation = "beta generated as a random field"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"
+
+[presets.s7]
+summary = "s5 with a spatially varying spectral curvature map on top of the varying spectral index, the most flexible synchrotron model."
+spatial_variation = "beta and curvature both vary per pixel"
+reference = "Pan-Experiment Galactic Science Group (PEGS), PySM 3 update"

@@ -1,0 +1,12 @@
+[component]
+name = "CMB dipole"
+summary = "The large-scale dipole in the CMB caused by the Solar System's motion relative to the CMB rest frame."
+sed = "Blackbody derivative scaled by the dipole amplitude"
+
+[presets.dip1]
+summary = "Solar dipole with amplitude 3366.6 uK toward Galactic (l, b) = (264.0, 48.2) degrees. Only the leading-order dipole is included."
+reference = "Planck dipole parameters"
+
+[presets.dip2]
+summary = "dip1 plus the quadrupole correction, the second-order relativistic term from the Solar motion."
+reference = "Planck dipole parameters"
