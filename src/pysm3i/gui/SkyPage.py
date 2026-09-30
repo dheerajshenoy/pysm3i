@@ -47,6 +47,7 @@ class SkyPage(QWidget):
         self._model = model or SkyModel()
         self._registry = load_registry()
         self._maps: np.ndarray | None = None
+        self._picked: tuple[float, float] | None = None  # last clicked (lon, lat)
         self._request_id = 0
         self._cancel = threading.Event()
         self._debounce = QTimer(self, singleShot=True, interval=DEBOUNCE_MS)
@@ -226,10 +227,20 @@ class SkyPage(QWidget):
             symmetric=stokes in ("Q", "U"),
             stretch=self.stretch_combo.currentText(),
         )
+        self._update_readout()
+
+    def _update_readout(self):
+        """Show the picked pixel's value for the map currently displayed."""
+        if self._picked is None:
+            return
+        lon, lat = self._picked
+        value = self.canvas.value_at(lon, lat)
+        self.status.setText(
+            f"l = {lon:.1f}°, b = {lat:.1f}°: "
+            f"{self.stokes_combo.currentText()} = {value:.4g} {self.unit_combo.currentText()}"
+        )
 
     def _on_pixel_clicked(self, lon: float, lat: float):
-        value = self.canvas.value_at(lon, lat)
-        unit = self.unit_combo.currentText()
-        self.status.setText(f"l = {lon:.1f}°, b = {lat:.1f}°: {self.stokes_combo.currentText()} = {value:.4g} {unit}")
+        self._picked = (lon, lat)
         self.pixel_selected.emit(lon, lat)
         self._redraw()
