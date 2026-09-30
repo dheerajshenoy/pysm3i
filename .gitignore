@@ -1,0 +1,3 @@
+
+# Ignore python cache files in all directories and subdirectories
+__pycache__/

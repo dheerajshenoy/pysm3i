@@ -34,11 +34,6 @@ def ghz_to_slider(freq: float) -> int:
     return round((np.log10(freq) - FREQ_MIN_LOG) / (FREQ_MAX_LOG - FREQ_MIN_LOG) * SLIDER_STEPS)
 
 
-def is_large(config: dict) -> bool:
-    """Presets that need high-resolution templates trigger big downloads."""
-    return "available_nside" in config or config.get("max_nside", 0) >= 2048
-
-
 class _JobSignals(QObject):
     done = pyqtSignal(int, object)
     failed = pyqtSignal(int, str)
@@ -139,7 +134,7 @@ class SkyPage(QWidget):
             check.setToolTip(component.summary)
             combo = QComboBox()
             for preset in component.presets:
-                label = f"{preset.name} (large download)" if is_large(preset.config) else preset.name
+                label = f"{preset.name} (large download)" if preset.is_large else preset.name
                 combo.addItem(label, preset.name)
                 combo.setItemData(combo.count() - 1, preset.summary, Qt.ItemDataRole.ToolTipRole)
             combo.setCurrentIndex(combo.findData(DEFAULT_PRESET[key]))
@@ -178,6 +173,19 @@ class SkyPage(QWidget):
         return box
 
     # ---- state -----------------------------------------------------------
+
+    def select_preset(self, name: str) -> bool:
+        """Enable a preset's component and pick it. False if this page can't show it."""
+        component = self._registry[name].component
+        if component not in COMPONENTS:
+            return False
+        combo = self._combos[component]
+        combo.setCurrentIndex(combo.findData(name))
+        self._checks[component].setChecked(True)
+        return True
+
+    def can_show(self, name: str) -> bool:
+        return self._registry[name].component in COMPONENTS
 
     def _active_presets(self) -> list[str]:
         return [self._combos[k].currentData() for k in COMPONENTS if self._checks[k].isChecked()]

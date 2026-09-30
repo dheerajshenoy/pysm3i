@@ -1,7 +1,10 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication, QPushButton, QVBoxLayout, QWidget, QStackedWidget
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QStackedWidget
 from PyQt6.QtCore import Qt
+from pysm3i.models import load_registry
+from .CatalogPage import CatalogPage
+from .PlaceholderPage import PlaceholderPage
 from .SkyPage import SkyPage
-from .SideBar import SideBar
+from .SideBar import PAGES, SideBar
 
 
 class MainWindow(QMainWindow):
@@ -13,9 +16,15 @@ class MainWindow(QMainWindow):
         self.init_sidebar()
 
     def init_central_widget(self):
-        # Create a central widget and set the layout
+        # One page per sidebar entry, in the same order as PAGES
+        self.sky_page = SkyPage()
+        self.catalog_page = CatalogPage(can_show_on_sky=self.sky_page.can_show)
+        self.catalog_page.show_on_sky.connect(self.show_preset_on_sky)
+        built = {"Sky": self.sky_page, "Catalog": self.catalog_page}
+
         self.stack_widget = QStackedWidget()
-        self.stack_widget.addWidget(SkyPage())
+        for name in PAGES:
+            self.stack_widget.addWidget(built.get(name) or PlaceholderPage(name))
         self.setCentralWidget(self.stack_widget)
 
     def init_sidebar(self):
@@ -27,3 +36,15 @@ class MainWindow(QMainWindow):
     def change_page(self, page_index):
         # Change the central widget's page based on the sidebar selection
         self.stack_widget.setCurrentIndex(page_index)
+
+    def show_preset_on_sky(self, name: str):
+        if load_registry()[name].is_large:
+            answer = QMessageBox.question(
+                self, "Large download",
+                f"{name} uses high-resolution templates. Showing it may download "
+                "a large file the first time. Continue?",
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                return
+        if self.sky_page.select_preset(name):
+            self.sidebar.list_widget.setCurrentRow(PAGES.index("Sky"))
