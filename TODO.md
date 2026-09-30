@@ -1,15 +1,16 @@
 # Core: a model browser and reference
 
-- [ ] Model catalog: List every preset (s1–s7, d0–d12, f1, a1/a2, c1–c4, co1–co3, cib1, tsz1, ksz1, rg1, sz, and so on) grouped by component. Each entry gets a plain-language description, the paper reference, the parametrization, and which templates or maps it uses.
-- [ ] Equation view: Render the SED with LaTeX or MathJax, for example the power law for synchrotron and the modified blackbody for dust. Highlight which parameters each preset makes constant, spatially varying, or curved.
-- Model comparison: Put d1 and d10 (or s1 and s5) side by side and show what differs, in both the parametrization and the resulting maps.
+- [x] Model catalog: List every preset (s1–s7, d0–d12, f1, a1/a2, c1–c4, co1–co3, cib1, tsz1, ksz1, rg1, sz, and so on) grouped by component. Each entry gets a plain-language description, the paper reference, the parametrization, and which templates or maps it uses.
+- [x] Equation view: Render the SED with LaTeX or MathJax, for example the power law for synchrotron and the modified blackbody for dust. Highlight which parameters each preset makes constant, spatially varying, or curved.
+- [ ] Model comparison: Put d1 and d10 (or s1 and s5) side by side and show what differs, in both the parametrization and the resulting maps.
 
 # Interactive visualization
 
-- Sky maps: Show I/Q/U in Mollweide, Cartesian, and Orthographic projections, with a frequency slider that updates live. Use healpy or matplotlib for a quick first version. pyqtgraph, vispy, or a pyvista sphere give smoother interaction.
-- SED explorer: Click a pixel on the sky and plot its emission versus frequency for each component and the total. Overlay the CMB blackbody and mark the frequency bands of instruments such as Planck, LiteBIRD, Simons Observatory, and CMB-S4.
-- Component toggles: Turn synchrotron, dust, free-free, AME, and CMB on and off, or stack them. Show the fraction of total power each component contributes at the chosen frequency.
-- Parameter playground: Sliders for the spectral index β, dust temperature, and so on, with the SED and map updating live. Because changing a parameter shows its effect directly, this is likely the most useful feature for learning.
+- [x] Sky maps: Show I/Q/U in Mollweide, Cartesian, and Orthographic projections, with a frequency slider that updates live.
+- [ ] Use healpy or matplotlib for a quick first version. pyqtgraph, vispy, or a pyvista sphere give smoother interaction.
+- [ ] SED explorer: Click a pixel on the sky and plot its emission versus frequency for each component and the total. Overlay the CMB blackbody and mark the frequency bands of instruments such as Planck, LiteBIRD, Simons Observatory, and CMB-S4.
+- [ ] Component toggles: Turn synchrotron, dust, free-free, AME, and CMB on and off, or stack them. Show the fraction of total power each component contributes at the chosen frequency.
+- [ ] Parameter playground: Sliders for the spectral index β, dust temperature, and so on, with the SED and map updating live. Because changing a parameter shows its effect directly, this is likely the most useful feature for learning.
 
 # Learning-oriented extras
 
