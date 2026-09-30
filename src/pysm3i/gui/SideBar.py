@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QDockWidget, QListWidget, QWidget
 from PyQt6.QtCore import pyqtSignal
 
-PAGES = ["Sky", "Catalog", "SED", "Spectra", "Tools"]
+PAGES = ["Sky", "Playground", "Catalog", "SED", "Spectra", "Tools"]
 
 class SideBar(QDockWidget):
     page_changed = pyqtSignal(int)

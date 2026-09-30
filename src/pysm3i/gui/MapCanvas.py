@@ -30,6 +30,7 @@ class MapCanvas(FigureCanvasQTAgg):
         self._zoom_center: tuple[float, float] | None = None  # None: use the picked pixel
         self._data: np.ndarray | None = None
         self._selected: tuple[float, float] | None = None
+        self.last_limits: tuple[float, float] | None = None  # colour range of the last draw
         self.mpl_connect("button_press_event", self._on_press)
 
     def _projector(self, name: str | None = None):
@@ -58,7 +59,7 @@ class MapCanvas(FigureCanvasQTAgg):
 
     def show_map(self, data: np.ndarray, label: str, cmap: str,
                  symmetric: bool, stretch: str, projection: str = "Mollweide",
-                 fov_deg: float = 20.0):
+                 fov_deg: float = 20.0, limits: tuple[float, float] | None = None):
         """Draw `data` (one HEALPix map). `stretch` is 'linear' or 'asinh'.
 
         The zoom view centres on the picked pixel when you switch to it, and keeps
@@ -79,13 +80,16 @@ class MapCanvas(FigureCanvasQTAgg):
         image = np.where(np.isfinite(image), image, np.nan)  # outside the map area
 
         finite = data[np.isfinite(data)]
-        if symmetric:
+        if limits is not None:  # fixed by the caller, e.g. to compare maps on one scale
+            vmin, vmax = limits
+        elif symmetric:
             vmax = float(np.percentile(np.abs(finite), 99)) or 1.0
             vmin = -vmax
         else:
             vmin, vmax = (float(v) for v in np.percentile(finite, [1, 99]))
             if vmin == vmax:
                 vmax = vmin + 1.0
+        self.last_limits = (vmin, vmax)
         if stretch == "asinh":
             norm = colors.AsinhNorm(linear_width=0.1 * (vmax - vmin), vmin=vmin, vmax=vmax)
         else:

@@ -18,7 +18,6 @@
 - [ ] Spatial variation of parameters: Show the β_s and T_d maps themselves.
 - [ ] Frequency-decorrelation demo: Plot the correlation between maps at two frequencies, which is what models like d10 and s5 are about.
 - [x] Unit converter: Convert between K_CMB, K_RJ, and MJy/sr, since unit confusion is a common stumbling block. Show the conversion factors per frequency.
-- [ ] Guided tour: Short notes such as "what happens to dust at 30 GHz vs 353 GHz" tied to presets of the sliders.
 
 # Practical features
 

@@ -5,6 +5,7 @@ from pysm3i.core.spectra import SpectraModel
 from pysm3i.models import load_registry
 from .CatalogPage import CatalogPage
 from .PlaceholderPage import PlaceholderPage
+from .PlaygroundPage import PlaygroundPage
 from .SEDPage import SEDPage
 from .SkyPage import SkyPage
 from .SpectraPage import SpectraPage
@@ -33,7 +34,8 @@ class MainWindow(QMainWindow):
         self.sky_page.presets_changed.connect(self.sed_page.invalidate)
         self.spectra_page = SpectraPage(SpectraModel(model), self.sky_page.active_presets)
         self.sky_page.presets_changed.connect(self.spectra_page.invalidate)
-        built = {"Sky": self.sky_page, "Catalog": self.catalog_page, "SED": self.sed_page,
+        self.playground_page = PlaygroundPage()
+        built = {"Sky": self.sky_page, "Playground": self.playground_page, "Catalog": self.catalog_page, "SED": self.sed_page,
                  "Spectra": self.spectra_page, "Tools": ToolsPage(self.sky_page.snapshot)}
 
         self.stack_widget = QStackedWidget()
