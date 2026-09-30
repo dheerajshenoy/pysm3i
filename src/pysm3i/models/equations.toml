@@ -1,0 +1,90 @@
+# SED equations by PySM3 class. Presets pick these up through the class hierarchy,
+# so a subclass (e.g. a "Realization") uses its parent's entry unless it has its own.
+# LaTeX is in single-quoted literal strings so backslashes are kept as written, and
+# must stay within matplotlib's mathtext subset.
+
+[classes.PowerLaw]
+title = "Power law"
+latex = ['T_{\mathrm{RJ}}(\nu) = T_{\mathrm{ref}}\left(\frac{\nu}{\nu_0}\right)^{\beta}']
+where = "T_ref: template map at the reference frequency ν0. β: spectral index, a constant or a map. Temperatures are Rayleigh-Jeans. Q and U use their own reference frequency."
+
+[classes.CurvedPowerLaw]
+title = "Curved power law"
+latex = ['T_{\mathrm{RJ}}(\nu) = T_{\mathrm{ref}}\left(\frac{\nu}{\nu_0}\right)^{\beta + C\,\ln(\nu/\nu_c)}']
+where = "As the power law, with the index changing slowly with frequency. C: spectral curvature, a constant or a map. ν_c: pivot frequency (23 GHz in the presets)."
+
+[classes.ModifiedBlackBody]
+title = "Modified blackbody"
+latex = [
+  'T_{\mathrm{RJ}}(\nu) = T_{\mathrm{ref}}\left(\frac{\nu}{\nu_0}\right)^{\beta_d-2}\frac{B_\nu(T_d)}{B_{\nu_0}(T_d)}',
+  'B_\nu(T) = \frac{2h\nu^3}{c^2}\,\frac{1}{e^{h\nu/kT}-1}',
+]
+where = "β_d: dust emissivity index. T_d: dust temperature. Both are constants or maps. ν0: reference frequency, which differs between presets (for example 545 GHz for intensity and 353 GHz for polarization in d0–d3). The −2 in the exponent converts the intensity spectrum to a Rayleigh-Jeans temperature."
+
+[classes.DecorrelatedModifiedBlackBody]
+title = "Modified blackbody with decorrelation"
+latex = [
+  'T_{\mathrm{RJ}}(\nu) = T_{\mathrm{ref}}\left(\frac{\nu}{\nu_0}\right)^{\beta_d-2}\frac{B_\nu(T_d)}{B_{\nu_0}(T_d)}',
+  'C(\nu_1,\nu_2) = \exp\left[-\frac{1}{2}\left(\frac{\ln(\nu_1/\nu_2)}{\ell}\right)^2\right]',
+]
+where = "The same SED as the modified blackbody, plus a frequency correlation function: maps at ν1 and ν2 are less correlated the further apart the frequencies are. ℓ: correlation length (5 in d6)."
+
+[classes.ModifiedBlackBodyLayers]
+title = "Layered modified blackbody"
+latex = ['T_{\mathrm{RJ}}(\nu) = \sum_{i=1}^{N} T_i\left(\frac{\nu}{\nu_0}\right)^{\beta_i-2}\frac{B_\nu(T_{d,i})}{B_{\nu_0}(T_{d,i})}']
+where = "A sum over N line-of-sight layers, each with its own amplitude map T_i, index β_i and temperature T_d,i. The sum is not a single modified blackbody, which produces frequency decorrelation."
+
+[classes.HensleyDraine2017]
+title = "Physical grain model"
+latex = []
+where = "No closed-form formula. The SED is interpolated from tabulated emission spectra of silicate and carbonaceous grains heated by a radiation field of strength U."
+
+[classes.SpDust]
+title = "Spinning dust"
+latex = ['T_{\mathrm{RJ}}(\nu) = T_{\mathrm{ref}}\left(\frac{\nu_0}{\nu}\right)^{2}\frac{j(\nu/\nu_p)}{j(\nu_0/\nu_p)}']
+where = "j: a tabulated spinning-dust emissivity curve, interpolated. ν_p: peak frequency, a constant or a map. ν0: reference frequency. In a2 the emission is also polarized, with a fixed fraction of 2%."
+
+[classes.CMBMap]
+title = "CMB blackbody anisotropies"
+latex = ['\Delta T_{\mathrm{RJ}}(\nu) = \Delta T_{\mathrm{CMB}}\,\frac{x^2 e^{x}}{(e^{x}-1)^2},\quad x=\frac{h\nu}{kT_{\mathrm{CMB}}}']
+where = "ΔT_CMB does not depend on frequency. It only looks frequency dependent in Rayleigh-Jeans units, through the conversion factor shown."
+
+[classes.CMBDipole]
+title = "CMB dipole"
+latex = ['\Delta T = \frac{T_{\mathrm{CMB}}}{\gamma\,(1-\beta\cos\theta)} - T_{\mathrm{CMB}}']
+where = "β = v/c and γ = 1/√(1−β²) for the observer's velocity. θ: angle between the direction of observation and the velocity. Frequency independent in K_CMB. In dip2 a quadrupole correction is included."
+
+[classes."SimpleSZ.thermal"]
+title = "Thermal Sunyaev-Zel'dovich effect"
+latex = ['\Delta T_{\mathrm{CMB}}(\nu) = y\,T_{\mathrm{CMB}}\left[x\,\frac{e^{x}+1}{e^{x}-1}-4\right],\quad x=\frac{h\nu}{kT_{\mathrm{CMB}}}']
+where = "y: Compton-y map. The bracket is the tSZ spectral function: negative below about 217 GHz, positive above."
+
+[classes."SimpleSZ.kinetic"]
+title = "Kinetic Sunyaev-Zel'dovich effect"
+latex = ['\Delta T_{\mathrm{CMB}}(\nu) = \Delta T_{\mathrm{kSZ}}']
+where = "The kSZ has the CMB blackbody spectrum, so the map is the same in K_CMB at every frequency."
+
+[classes.COLines]
+title = "CO line emission"
+latex = []
+where = "Emission in the CO J=1-0, 2-1 and 3-2 lines, integrated over the bandpass. There is no smooth continuum formula."
+
+[classes.InterpolatingComponent]
+title = "Tabulated maps"
+latex = []
+where = "Maps are tabulated at discrete frequencies and interpolated between them. There is no analytic SED."
+
+[classes.WebSkyCIB]
+title = "Tabulated maps"
+latex = []
+where = "Maps are tabulated at discrete frequencies and interpolated between them. There is no analytic SED."
+
+[classes.WebSkyRadioGalaxies]
+title = "Tabulated maps"
+latex = []
+where = "Maps are tabulated at discrete frequencies and interpolated between them. There is no analytic SED."
+
+[classes.PointSourceCatalog]
+title = "Source catalog"
+latex = []
+where = "Emission from a catalog of individual sources rather than a smooth map, so there is no single analytic SED."

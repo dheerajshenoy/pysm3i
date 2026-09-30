@@ -5,7 +5,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
-from pysm3i.models import Preset, load_registry
+from pysm3i.models import Equation, Preset, load_registry
+from .equations import latex_to_pixmap
 
 ROLE_KIND = Qt.ItemDataRole.UserRole  # "component" or "preset"
 ROLE_KEY = Qt.ItemDataRole.UserRole + 1  # component key or preset name
@@ -86,6 +87,8 @@ class CatalogPage(QWidget):
         self.params_title = QLabel("Configuration")
         self.params_title.setStyleSheet("font-weight: bold;")
 
+        self.equation_box = QVBoxLayout()  # rebuilt for each selected preset
+
         self.sky_button = QPushButton("Show on sky")
         self.sky_button.clicked.connect(lambda: self.show_on_sky.emit(self._current.name))
 
@@ -95,6 +98,7 @@ class CatalogPage(QWidget):
         layout.addWidget(self.summary)
         layout.addWidget(self.note)
         layout.addLayout(self.form)
+        layout.addLayout(self.equation_box)
         layout.addWidget(self.sky_button, alignment=Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(self.params_title)
         layout.addWidget(self.params, stretch=1)
@@ -157,6 +161,8 @@ class CatalogPage(QWidget):
         self.summary.setText(component.summary)
         self.note.clear()
         self.sed.setText(component.sed)
+        self.form.setRowVisible(self.sed, True)
+        self._set_equations([], 1)
         for label in (self.sed_class, self.variation, self.reference):
             label.clear()
         self.sky_button.hide()
@@ -172,13 +178,42 @@ class CatalogPage(QWidget):
             "Uses high-resolution templates. The first use downloads a large file."
             if preset.is_large else ""
         )
-        self.sed.setText(component.sed)
+        self.form.setRowVisible(self.sed, False)
+        self._set_equations(self._registry.equations_for(preset), preset.n_components)
         self.sed_class.setText(preset.sed_class)
         self.variation.setText(preset.spatial_variation or "n/a")
         self.reference.setText(preset.reference or "n/a")
         self.sky_button.setVisible(self._can_show_on_sky(preset.name))
         self.params_title.setText("Configuration")
         self._set_rows(flatten(preset.config))
+
+    def _set_equations(self, equations: list[Equation], n_components: int):
+        while self.equation_box.count():
+            item = self.equation_box.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)  # stop painting it now, not at some later event pass
+                widget.deleteLater()
+        color = self.palette().windowText().color().name()
+        for equation in equations:
+            title = QLabel(equation.title)
+            title.setStyleSheet("font-weight: bold;")
+            self.equation_box.addWidget(title)
+            for line in equation.latex:
+                label = QLabel()
+                label.setPixmap(latex_to_pixmap(line, color=color))
+                label.setContentsMargins(12, 2, 0, 2)
+                self.equation_box.addWidget(label)
+            where = equation.where
+            if n_components > 1:
+                where += f" This preset sums {n_components} components, each with this SED."
+            self.equation_box.addWidget(self._wrapped_label_with(where))
+
+    def _wrapped_label_with(self, text: str) -> QLabel:
+        label = self._wrapped_label()
+        label.setText(text)
+        label.setStyleSheet("color: gray;")
+        return label
 
     def _set_rows(self, rows: list[tuple[str, str]]):
         self.params.setRowCount(len(rows))
