@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
         self.spectra_page = SpectraPage(SpectraModel(model), self.sky_page.active_presets)
         self.sky_page.presets_changed.connect(self.spectra_page.invalidate)
         built = {"Sky": self.sky_page, "Catalog": self.catalog_page, "SED": self.sed_page,
-                 "Spectra": self.spectra_page, "Tools": ToolsPage()}
+                 "Spectra": self.spectra_page, "Tools": ToolsPage(self.sky_page.snapshot)}
 
         self.stack_widget = QStackedWidget()
         for name in PAGES:

@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy, QSlider, QToolBar, QVBoxLayout, QWidget,
 )
 
+from pysm3i.core.export import SkySnapshot
 from pysm3i.core.skymodel import UNITS, SkyModel
 from pysm3i.models import load_registry
 from .BusyBar import BusyBar
@@ -49,6 +50,8 @@ class SkyPage(QWidget):
         self._model = model or SkyModel()
         self._registry = load_registry()
         self._maps: np.ndarray | None = None
+        self._maps_info: tuple | None = None  # settings that produced self._maps
+        self._infos: dict[int, tuple] = {}  # request id -> settings, until its maps arrive
         self._picked: tuple[float, float] | None = None  # last clicked (lon, lat)
         self._request_id = 0
         self._cancel = threading.Event()
@@ -184,6 +187,13 @@ class SkyPage(QWidget):
         self._checks[component].setChecked(True)
         return True
 
+    def snapshot(self) -> SkySnapshot | None:
+        """The displayed maps with the settings that produced them, or None if not exportable."""
+        if self._maps is None or self._maps_info is None or not self._maps_info[0]:
+            return None
+        presets, nside, freq_ghz, unit_label = self._maps_info
+        return SkySnapshot(presets, nside, freq_ghz, unit_label, self._maps)
+
     def can_show(self, name: str) -> bool:
         return self._registry[name].component in COMPONENTS
 
@@ -213,6 +223,7 @@ class SkyPage(QWidget):
         nside = self.nside_combo.currentData()
         freq_ghz = slider_to_ghz(self.freq_slider.value())
         unit = UNITS[self.unit_combo.currentText()]
+        self._infos[self._request_id] = (tuple(presets), nside, freq_ghz, self.unit_combo.currentText())
         job = Job(self._request_id,
                   lambda: model.emission(presets, nside, freq_ghz, unit, cancel))
         job.signals.done.connect(self._on_maps_ready)
@@ -223,6 +234,8 @@ class SkyPage(QWidget):
         if request_id != self._request_id:  # a newer request superseded this one
             return
         self._maps = maps
+        self._maps_info = self._infos.pop(request_id)
+        self._infos = {k: v for k, v in self._infos.items() if k > request_id}
         self.busy.hide()
         self.status.setText("Click the map to pick a pixel.")
         self._redraw()

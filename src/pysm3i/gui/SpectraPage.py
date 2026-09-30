@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from pysm3i.core.spectra import SPECTRA, SpectraModel
 from pysm3i.models import load_registry
 from .BusyBar import BusyBar
+from .ScaleControls import ScaleControls
 from .jobs import Job
 
 NSIDES = [16, 32, 64, 128, 256, 512]
@@ -85,6 +86,8 @@ class SpectraPage(QWidget):
         note.setWordWrap(True)
         note.setStyleSheet("color: gray;")
 
+        self.scales = ScaleControls()
+        self.scales.changed.connect(self._redraw)
         self.spectrum_combo.currentIndexChanged.connect(self._redraw)
         self.freq.valueChanged.connect(self._schedule)
         self.region_combo.currentIndexChanged.connect(self._schedule)
@@ -95,6 +98,7 @@ class SpectraPage(QWidget):
                              ("Region", self.region_combo), ("Nside", self.nside_combo)]:
             controls.addWidget(QLabel(text))
             controls.addWidget(widget)
+        controls.addWidget(self.scales)
         controls.addStretch(1)
         status_row = QHBoxLayout()
         status_row.addWidget(self.status, stretch=1)
@@ -187,7 +191,7 @@ class SpectraPage(QWidget):
         def plot(dl, **style) -> bool:
             if not dl[index].any():  # e.g. free-free has no polarization
                 return False
-            ax.loglog(*bin_spectrum(dl[index], edges), **style)
+            ax.plot(*bin_spectrum(dl[index], edges), **style)
             return True
 
         empty = []
@@ -206,6 +210,7 @@ class SpectraPage(QWidget):
         ax.set_ylabel(rf"$D_\ell^{{{name}}} = \ell(\ell+1)C_\ell/2\pi\ \ [\mu K_{{CMB}}^2]$")
         ax.set_title(f"{name} power spectrum at {self.freq.value():.0f} GHz, "
                      f"{self.region_combo.currentText()} (nside {self.nside_combo.currentData()})")
+        self.scales.apply(ax)
         ax.grid(True, which="both", alpha=0.3)
         if ax.get_legend_handles_labels()[0]:
             ax.legend(fontsize=9)

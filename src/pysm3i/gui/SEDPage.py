@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 from pysm3i.core.skymodel import UNITS, SkyModel
 from pysm3i.models import load_registry
 from .BusyBar import BusyBar
+from .ScaleControls import ScaleControls
 from .jobs import Job
 
 SED_NSIDE = 32  # coarse on purpose: a spectrum needs one map per frequency
@@ -54,14 +55,17 @@ class SEDPage(QWidget):
 
         self.lon.valueChanged.connect(self._schedule)
         self.lat.valueChanged.connect(self._schedule)
+        self.scales = ScaleControls()
         self.stokes_combo.currentIndexChanged.connect(self._redraw)
         self.unit_combo.currentIndexChanged.connect(self._redraw)
+        self.scales.changed.connect(self._redraw)
 
         controls = QHBoxLayout()
         for text, widget in [("l", self.lon), ("b", self.lat),
                              ("Stokes", self.stokes_combo), ("Units", self.unit_combo)]:
             controls.addWidget(QLabel(text))
             controls.addWidget(widget)
+        controls.addWidget(self.scales)
         controls.addStretch(1)
         status_row = QHBoxLayout()
         status_row.addWidget(self.status, stretch=1)
@@ -183,19 +187,20 @@ class SEDPage(QWidget):
             if not curve.any():  # all zero, e.g. free-free has no polarization
                 empty.append(label)
                 continue
-            ax.loglog(FREQS_GHZ, curve, linewidth=2, label=label)
+            ax.plot(FREQS_GHZ, curve, linewidth=2, label=label)
         self.status.setText(f"No {stokes} emission: {', '.join(empty)}" if empty else "")
         total = sum(self._data.values())
         if len(self._data) > 1:
-            ax.loglog(FREQS_GHZ, select(total), "k--", label="Total", linewidth=1.5)
+            ax.plot(FREQS_GHZ, select(total), "k--", label="Total", linewidth=1.5)
         if stokes == "I":
             cmb = (np.full(FREQS_GHZ.shape, CMB_RMS_UK) * u.uK_CMB).to(unit, equivalencies).value
-            ax.loglog(FREQS_GHZ, cmb, ":", color="gray",
+            ax.plot(FREQS_GHZ, cmb, ":", color="gray",
                       label=f"CMB anisotropy, rms ≈ {CMB_RMS_UK:.0f} µK_CMB")
         ax.set_xlabel("Frequency [GHz]")
         ax.set_ylabel(f"{'|I|' if stokes == 'I' else 'P'} [{unit_label}]")
         ax.set_title(f"Spectrum at l = {self.lon.value():.1f}°, b = {self.lat.value():.1f}° "
                      f"(nside {SED_NSIDE})")
+        self.scales.apply(ax)
         ax.grid(True, which="both", alpha=0.3)
         ax.legend(fontsize=9)
         self.canvas.draw_idle()

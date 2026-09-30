@@ -1,12 +1,13 @@
-from PyQt6.QtGui import QDoubleValidator
+from PyQt6.QtGui import QDoubleValidator, QFontDatabase, QGuiApplication
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QAbstractItemView, QComboBox, QDoubleSpinBox, QGridLayout, QGroupBox, QHBoxLayout,
-    QHeaderView, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget,
+    QAbstractItemView, QComboBox, QDoubleSpinBox, QFileDialog, QGridLayout, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from pysm3i.core.convert import UNIT_CHOICES, convert
+from pysm3i.core.export import default_filename, sky_snippet, write_fits
 from .equations import latex_to_pixmap
 
 # Nominal Planck band centres, a familiar set of frequencies for the factor table.
@@ -21,14 +22,87 @@ EQUATIONS = [
 
 
 class ToolsPage(QWidget):
-    """Small utilities. For now: a CMB / Rayleigh-Jeans / flux-density unit converter."""
+    """Small utilities: unit converter, reference table, and export of the Sky page's map."""
 
-    def __init__(self):
+    def __init__(self, get_snapshot=lambda: None):
         super().__init__()
+        self._get_snapshot = get_snapshot  # callable returning the exportable SkySnapshot
         layout = QVBoxLayout(self)
         layout.addWidget(self._build_converter())
+        layout.addWidget(self._build_export())
         layout.addWidget(self._build_table(), stretch=1)
         self._update()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._refresh_export()  # the Sky page may have changed since last time
+
+    # ---- export ----------------------------------------------------------
+
+    def _build_export(self) -> QGroupBox:
+        box = QGroupBox("Export the map on the Sky page")
+        self.export_summary = QLabel()
+        self.export_summary.setWordWrap(True)
+        self.snippet = QPlainTextEdit()
+        self.snippet.setReadOnly(True)
+        self.snippet.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+        self.snippet.setFixedHeight(210)
+        self.save_button = QPushButton("Save map as FITS…")
+        self.copy_button = QPushButton("Copy Python snippet")
+        self.export_status = QLabel()
+        self.export_status.setStyleSheet("color: gray;")
+        self.save_button.clicked.connect(self._save_fits)
+        self.copy_button.clicked.connect(self._copy_snippet)
+
+        buttons = QHBoxLayout()
+        buttons.addWidget(self.save_button)
+        buttons.addWidget(self.copy_button)
+        buttons.addWidget(self.export_status, stretch=1)
+        layout = QVBoxLayout(box)
+        layout.addWidget(self.export_summary)
+        layout.addWidget(self.snippet)
+        layout.addLayout(buttons)
+        return box
+
+    def _refresh_export(self):
+        snapshot = self._get_snapshot()
+        self.export_status.clear()
+        self.save_button.setEnabled(snapshot is not None)
+        self.copy_button.setEnabled(snapshot is not None)
+        if snapshot is None:
+            self.export_summary.setText("Nothing to export yet. Enable a component on the Sky page "
+                                        "and wait for the map to finish computing.")
+            self.snippet.clear()
+            return
+        self.export_summary.setText(
+            f"{', '.join(snapshot.presets)} at {snapshot.freq_ghz:.1f} GHz, nside {snapshot.nside}, "
+            f"{snapshot.unit_label}. This is the map currently displayed (I, Q and U)."
+        )
+        self.snippet.setPlainText(sky_snippet(snapshot))
+
+    def _save_fits(self):
+        snapshot = self._get_snapshot()
+        if snapshot is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save map as FITS", default_filename(snapshot), "FITS files (*.fits *.fit)"
+        )
+        if not path:
+            return
+        if not path.lower().endswith((".fits", ".fit")):
+            path += ".fits"
+        try:
+            write_fits(path, snapshot)
+        except Exception as exc:  # e.g. a read-only folder: report it, do not crash
+            self.export_status.setText(f"Could not save: {exc}")
+        else:
+            self.export_status.setText(f"Saved {path}")
+
+    def _copy_snippet(self):
+        snapshot = self._get_snapshot()
+        if snapshot is not None:
+            QGuiApplication.clipboard().setText(sky_snippet(snapshot))
+            self.export_status.setText("Copied to the clipboard.")
 
     # ---- converter -------------------------------------------------------
 
