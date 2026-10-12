@@ -12,6 +12,18 @@ An interactive Qt desktop app for exploring [PySM 3](https://github.com/galsci/p
 - **Unit converter**: K_CMB, K_RJ and MJy/sr.
 - **Resolution control**: low `nside` for interactivity, full resolution as a background job.
 
+## Screenshots
+
+![Home](./images/main.png)
+
+![SED](./images/SEDs.png)
+
+![QUEB](./images/QUEB.png)
+
+![Foreground Models Catalog](./images/models.png)
+
+![Export](./images/export.png)
+
 See `TODO.md` for planned features.
 
 ## Requirements
