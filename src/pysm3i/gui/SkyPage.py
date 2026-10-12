@@ -44,6 +44,7 @@ class SkyPage(QWidget):
 
     pixel_selected = pyqtSignal(float, float)  # lon, lat in degrees
     presets_changed = pyqtSignal()  # the set of active presets changed
+    maps_ready = pyqtSignal()  # new maps were computed and are on screen
 
     def __init__(self, model: SkyModel | None = None):
         super().__init__()
@@ -239,6 +240,7 @@ class SkyPage(QWidget):
         self.busy.hide()
         self.status.setText("Click the map to pick a pixel.")
         self._redraw()
+        self.maps_ready.emit()
 
     def _on_maps_failed(self, request_id: int, message: str):
         if request_id == self._request_id:
